@@ -34,7 +34,7 @@ Key precedence: `--api-key` flag › `$SELECTWIN_API_KEY` › active profile.
 
 ## Call the API
 
-**Escape hatch** — reach any endpoint, exactly like `stripe get`:
+**Escape hatch** — reach any endpoint directly:
 
 ```bash
 selectwin get /v1/customers?limit=3
