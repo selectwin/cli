@@ -1,6 +1,6 @@
 {
   "name": "@selectwin/cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Selectwin command-line interface — authenticate, call any endpoint, and manage resources from your terminal.",
   "keywords": [
     "selectwin",
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@oclif/core": "^4.0.0",
+    "@oclif/plugin-help": "^6.2.53",
     "@selectwin/sdk": "^0.1.1",
     "chalk": "^5.3.0",
     "smol-toml": "^1.3.0"
@@ -50,6 +51,9 @@
     "bin": "selectwin",
     "dirname": "selectwin",
     "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
     "topicSeparator": " ",
     "topics": {
       "config": {
