@@ -1,6 +1,6 @@
 {
   "name": "@selectwin/cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Selectwin command-line interface — authenticate, call any endpoint, and manage resources from your terminal.",
   "keywords": [
     "selectwin",
