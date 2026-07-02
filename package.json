@@ -1,8 +1,14 @@
 {
   "name": "@selectwin/cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Selectwin command-line interface — authenticate, call any endpoint, and manage resources from your terminal.",
-  "keywords": ["selectwin", "cli", "payments", "api", "oclif"],
+  "keywords": [
+    "selectwin",
+    "cli",
+    "payments",
+    "api",
+    "oclif"
+  ],
   "homepage": "https://github.com/selectwin/cli",
   "repository": {
     "type": "git",
@@ -28,7 +34,7 @@
   },
   "dependencies": {
     "@oclif/core": "^4.0.0",
-    "@selectwin/sdk": "^0.1.0",
+    "@selectwin/sdk": "^0.1.1",
     "chalk": "^5.3.0",
     "smol-toml": "^1.3.0"
   },
@@ -46,10 +52,18 @@
     "commands": "./dist/commands",
     "topicSeparator": " ",
     "topics": {
-      "config": { "description": "manage CLI profiles (~/.selectwin/config.toml)" },
-      "transactions": { "description": "create, list and manage transactions" },
-      "customers": { "description": "create, list and manage customers" },
-      "webhooks": { "description": "manage webhook endpoints and test deliveries" }
+      "config": {
+        "description": "manage CLI profiles (~/.selectwin/config.toml)"
+      },
+      "transactions": {
+        "description": "create, list and manage transactions"
+      },
+      "customers": {
+        "description": "create, list and manage customers"
+      },
+      "webhooks": {
+        "description": "manage webhook endpoints and test deliveries"
+      }
     }
   },
   "scripts": {
