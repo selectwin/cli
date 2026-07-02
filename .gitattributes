@@ -1,0 +1,2 @@
+# Normalize text files to LF (the bin scripts + shell completions run on Linux CI).
+* text=auto eol=lf

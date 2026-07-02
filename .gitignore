@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+oclif.manifest.json
+.env
+.env*.local
+*.log
+npm-debug.log*
+.DS_Store
+coverage/
