@@ -1,0 +1,89 @@
+name: Sync @selectwin/sdk dependency
+
+# Keeps the CLI's @selectwin/sdk dependency current. When a newer @selectwin/sdk is
+# published to npm, this opens a PR bumping the dep (+ lockfile) and the CLI's own
+# patch version — AFTER verifying typecheck + tests pass against the new SDK. Nothing
+# publishes: a human reviews/merges, then tags to release (release.yml guards against
+# republishing an existing version).
+#
+# TOKEN-FREE: reads the PUBLIC npm registry and opens a SAME-REPO PR with the built-in
+# GITHUB_TOKEN. No secret to configure.
+#
+# Triggers: manual + a daily poll. The daily poll is a token-free way to pick up new
+# SDK releases within a day. For INSTANT propagation, have sdk-nodejs's release.yml
+# fire a repository_dispatch (type: sdk-published) at this repo right after publishing —
+# that needs a PAT with contents:write on selectwin/cli. Then uncomment the trigger below.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'   # daily; scheduled runs only fire on the default branch
+  # repository_dispatch:
+  #   types: [sdk-published]
+
+concurrency:
+  group: sync-sdk-dep
+  cancel-in-progress: true
+
+# Same-repo PR via the built-in token — no cross-repo secret needed.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-dep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check for a newer @selectwin/sdk
+        id: check
+        run: |
+          LATEST=$(npm view @selectwin/sdk version)
+          CURRENT=$(node -p "require('./package.json').dependencies['@selectwin/sdk']")
+          echo "latest @selectwin/sdk = $LATEST ; current range = $CURRENT"
+          if [ "$CURRENT" = "^$LATEST" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CLI already depends on the latest @selectwin/sdk ($LATEST) — nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump dependency + lockfile + CLI version
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          npm pkg set "dependencies.@selectwin/sdk=^${{ steps.check.outputs.latest }}"
+          npm install
+          npm version patch --no-git-tag-version
+
+      - name: Verify against the new SDK
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Open / update PR
+        if: steps.check.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/bump-sdk-dep
+          base: main
+          commit-message: 'chore: bump @selectwin/sdk to ^${{ steps.check.outputs.latest }}'
+          title: 'chore: bump @selectwin/sdk to ^${{ steps.check.outputs.latest }}'
+          body: |
+            Automated dependency bump: **`@selectwin/sdk` → `^${{ steps.check.outputs.latest }}`**.
+
+            - Lockfile refreshed (`npm install`).
+            - CLI version patch-bumped.
+            - `npm run typecheck` + `npm test` **passed against the new SDK** in this run.
+
+            Review + merge, then tag `vX.Y.Z` to release (the Release workflow skips if
+            that version is already on npm).
+          labels: |
+            automated
+            sdk-sync
+          delete-branch: true
