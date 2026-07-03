@@ -44,4 +44,12 @@ describe('commands', () => {
     const { error } = await runCommand(['whoami'], { root: process.cwd() })
     expect(error?.oclif?.exit).toBe(10)
   })
+
+  it('under --json still exits non-zero AND writes an error envelope to stdout (never silent)', async () => {
+    vi.stubGlobal('fetch', mockFetch(404, { error: { code: 'not_found', message: 'nope' } }))
+    const { error, stdout } = await runCommand(['get', '/v1/nope', '--json'], { root: process.cwd() })
+    expect(error?.oclif?.exit).toBe(12)
+    expect(stdout).toContain('not_found')
+    expect(stdout).toContain('"error"')
+  })
 })

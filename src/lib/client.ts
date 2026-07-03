@@ -6,11 +6,25 @@
  * Both authenticate with the `selectkey` header and share key resolution.
  */
 import { randomUUID } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Selectwin } from '@selectwin/sdk'
 import { loadConfig, resolveProfileName, type Profile } from './config.js'
 import { ApiRequestError, type ErrorEnvelope } from './errors.js'
 
-export const CLI_VERSION = '0.1.0'
+/** Read the version from package.json so the User-Agent never drifts from the published release. */
+function readCliVersion(): string {
+  try {
+    // dist/lib/client.js (or src/lib/client.ts under tsx) → ../../package.json is the repo/package root.
+    const pkgPath = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'package.json')
+    return (JSON.parse(readFileSync(pkgPath, 'utf8')) as { version?: string }).version ?? '0.0.0'
+  } catch {
+    return '0.0.0'
+  }
+}
+
+export const CLI_VERSION = readCliVersion()
 export const DEFAULT_BASE_URL = 'https://api.selectwin.io'
 const USER_AGENT = `selectwin-cli/${CLI_VERSION}`
 

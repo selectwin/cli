@@ -25,6 +25,14 @@ describe('formatError', () => {
     expect(exitCode).toBe(EXIT.CONNECTION)
   })
 
+  it('maps an escape-hatch connection failure (status 0 / connection_error) → connection exit', () => {
+    const err = new ApiRequestError(0, 'could not reach http://127.0.0.1:59999/v1/ping', { code: 'connection_error' })
+    const { exitCode, message } = formatError(err)
+    expect(exitCode).toBe(EXIT.CONNECTION)
+    expect(message).toContain('Connection error')
+    expect(message).toContain('could not reach')
+  })
+
   it('falls back to generic for unknown errors', () => {
     expect(formatError(new Error('boom')).exitCode).toBe(EXIT.GENERIC)
   })

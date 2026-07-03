@@ -67,7 +67,17 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       return super.catch(err as Interfaces.CommandError)
     }
     const { message, exitCode } = formatError(err)
-    this.logToStderr(message)
+    // oclif silences BOTH log() and logToStderr() under --json, so a plain
+    // logToStderr() here would make failures silent in scripting mode (only the
+    // exit code survives). Under --json emit a machine-readable error envelope
+    // straight to stdout; otherwise print the human line to stderr.
+    if (this.jsonEnabled()) {
+      const e = err as unknown as { message?: string; code?: string; status?: number; requestId?: string }
+      const envelope = { error: { message: e.message ?? String(err), code: e.code, status: e.status, requestId: e.requestId } }
+      process.stdout.write(`${JSON.stringify(envelope, null, 2)}\n`)
+    } else {
+      this.logToStderr(message)
+    }
     return this.exit(exitCode)
   }
 }

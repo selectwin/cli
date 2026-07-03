@@ -76,19 +76,31 @@ function readField<T>(err: unknown, key: string): T | undefined {
 }
 
 export function formatError(err: unknown): Formatted {
-  // Network/connection failures (SDK ApiConnectionError or a raw fetch throw).
   const name = readField<string>(err, 'name')
-  if (name === 'ApiConnectionError' || (err instanceof TypeError && /fetch/i.test(String(err)))) {
-    return {
-      message: chalk.red('Connection error: could not reach the Selectwin API.'),
-      exitCode: EXIT.CONNECTION,
-    }
-  }
-
   const status = readField<number>(err, 'status')
   const code = readField<string>(err, 'code')
   const requestId = readField<string>(err, 'requestId')
   const baseMessage = readField<string>(err, 'message') ?? String(err)
+
+  // Network/connection failures, from any of the three paths that produce them:
+  //   - the SDK's `ApiConnectionError` (curated commands),
+  //   - the escape-hatch raw client, which throws `ApiRequestError(0, …,
+  //     { code: 'connection_error' })` — note status 0 is falsy, so it must be
+  //     matched explicitly or it falls through to the GENERIC exit code,
+  //   - a bare `fetch` TypeError.
+  // All map to the documented CONNECTION exit code (18).
+  if (
+    name === 'ApiConnectionError' ||
+    code === 'connection_error' ||
+    status === 0 ||
+    (err instanceof TypeError && /fetch/i.test(String(err)))
+  ) {
+    const detail = readField<string>(err, 'message')
+    return {
+      message: chalk.red(`Connection error: ${detail ?? 'could not reach the Selectwin API.'}`),
+      exitCode: EXIT.CONNECTION,
+    }
+  }
 
   if (status !== undefined || code !== undefined) {
     const parts = [chalk.red(`Error${status ? ` (HTTP ${status})` : ''}: ${baseMessage}`)]
